@@ -12,6 +12,7 @@ from shapely.ops import unary_union
 from math import cos, radians
 import subprocess
 import random
+import datetime
 
 # -----------------------------------
 
@@ -301,8 +302,8 @@ if __name__ == "__main__":
     center_point = [23.7636959, 61.5]  # Tampere
     #center_point = [24.9060031, 60.2411758]  # Helsinki
     
-    small_extending_km = 20
-    big_extending_km = 100
+    small_extending_km = 30
+    big_extending_km = 90
 
     small_output_file_name = 'small_output'
     big_output_file_name = 'big_output'
@@ -348,19 +349,27 @@ if __name__ == "__main__":
 
 
 
-    ##########################3
+    ##########################
     # garmin tiedoston luonti
-    ##########################3
+    ##########################
 
+    datestr = (
+        datetime.datetime.now().strftime("%Y")+
+        datetime.datetime.now().strftime("%m")+
+        datetime.datetime.now().strftime("%d")
+    )
     # luodaan garmin img fileet mkgmap:lla
     # arvotaan mapname jokaiselle kartalle
     mapname_small = str(random.randint(1000000, 9999999)+40000000)
     mapname_big = str(random.randint(1000000, 9999999)+50000000)
 
+
+    ### SMALL tiles
+
     result = subprocess.run(['mkgmap', 
                             '--read-config=config.txt',
                             f'--mapname={mapname_small}',
-                            '--description=SMALL_tiles',
+                            f'--description=SMALL_tiles_{datestr}',
                             'typ.txt',
                             'small_missing_tiles.osm'
                             ], capture_output=True, text=True)
@@ -370,16 +379,18 @@ if __name__ == "__main__":
 
     result = subprocess.run(['mv', 
                             'output/gmapsupp.img',
-                            'output/gmapsupp-small.img',
+                            f'output/tiles-small-{datestr}.img',
                             ], capture_output=True, text=True)
     print(result.stdout)
     print(result.stderr)
 
 
+    ### BIG TILES
+
     result = subprocess.run(['mkgmap', 
                             '--read-config=config.txt',
                             f'--mapname={mapname_big}',
-                            '--description=BIG_tiles',
+                            f'--description=BIG_tiles_{datestr}',
                             'typ.txt',
                             'big_missing_tiles.osm'
                             ], capture_output=True, text=True)
@@ -388,7 +399,7 @@ if __name__ == "__main__":
 
     result = subprocess.run(['mv', 
                             'output/gmapsupp.img',
-                            'output/gmapsupp-big.img',
+                            f'output/tiles-big-{datestr}.img',
                             ], capture_output=True, text=True)
     print(result.stdout)
     print(result.stderr)

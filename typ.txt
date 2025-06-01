@@ -1,7 +1,7 @@
 [_line]
 Type=0x01
 UseOrientation=N
-LineWidth=3
+LineWidth=4
 Xpm="0 0 1 0"
 "1 c #AA0000"
 String=solid line
