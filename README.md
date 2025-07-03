@@ -33,6 +33,14 @@ Voit myös antaa KML-tiedoston parametrina:
 python tiling.py squadrats-2025-07-03.kml
 ```
 
+Karttatiedostot löytyvät `output`-hakemistosta:
+
+`tiles-big-20250703.img`
+
+`tiles-small-20250703.img`
+
+Vie tiedostot Garminiin. Apua löytyy esimerkiksi [Tero Hiironniemen ohjeistuksesta](https://www.youtube.com/watch?v=kHZTVT0tEVI). 
+
 ## MacOS
 
 ```bash
