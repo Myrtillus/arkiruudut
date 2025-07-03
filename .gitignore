@@ -1,3 +1,4 @@
 output
 *.kml
 *.osm
+.DS_Store

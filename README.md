@@ -21,9 +21,7 @@ pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-Suorita skripti:
-
-Skripti käyttää oletuksena `squadrats.kml`-tiedostoa:
+Suorita skripti. Oletuksena käytetään `squadrats.kml`-tiedostoa:
 
 ```bash
 python tiling.py
@@ -34,4 +32,44 @@ Voit myös antaa KML-tiedoston parametrina:
 ```bash
 python tiling.py squadrats-2025-07-03.kml
 ```
+
+## MacOS
+
+```bash
+brew update
+brew upgrade
+brew install gpsbabel
+brew install openjdk
+```
+
+```bash
+echo 'export PATH="/opt/homebrew/opt/openjdk/bin:$PATH"' >> ~/.zprofile
+source ~/.zprofile
+```
+
+Lataa mkgmap ja luo skripti sen ajamiseen:
+
+```bash
+nano ~/bin/mkgmap
+```
+
+Tiedoston sisältö. Tallenna mkgmap-paketti haluamaasi paikkaan ja muokkaa polkua vastaavasti:
+
+```bash
+#!/bin/bash
+java -jar /Users/USERNAME/bin/mkgmap-r4923/mkgmap.jar "$@"
+```
+
+Tässä mkgmap-paketti on sijoitettu `bin`-hakemistoon.
+
+Päivitetään vielä polku:
+
+```bash
+chmod +x ~/bin/mkgmap
+echo 'export PATH="$HOME/bin:$PATH"' >> ~/.zprofile
+source ~/.zprofile
+```
+
+
+
 
