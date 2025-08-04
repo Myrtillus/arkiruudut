@@ -14,7 +14,6 @@ import subprocess
 import random
 import datetime
 
-import argparse
 # -----------------------------------
 
 def kml_to_shapes(kml_file, zoom_level):
@@ -258,7 +257,8 @@ def main(kml_file, zoom_level, center_point, extending_km, output_file_name):
     
     # 🔥 Perform difference in one step
     print("Leikataan gridiviivat yhdellä operaatiolla")
-    multi_grid = multi_grid.difference(merged_shapes)
+    #multi_grid = multi_grid.difference(merged_shapes)    # lasketaan käymättömät ruudut
+    multi_grid = multi_grid.intersection(merged_shapes)   # lasketaan käydyt ruudut
     
 
     def polygon_to_multilinestring(polygon):
@@ -292,22 +292,13 @@ def main(kml_file, zoom_level, center_point, extending_km, output_file_name):
     #shapes_to_osm(shapes, multi_grid, output_file_name)
 
 
+
+
 # ---------------------------
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Process a KML file.")
-    parser.add_argument(
-        "kml",
-        nargs="?",
-        default="squadrats.kml",
-        help="Path to the KML file (default: squadrats.kml)"
-    )
 
-    args = parser.parse_args()
-    kml_file = args.kml
 
-    print(f"Processing KML file: {kml_file}")
-
-#    kml_file='squadrats.kml'
+    kml_file='squadrats.kml'
 
     center_point = [23.7636959, 61.5]  # Tampere
     #center_point = [24.9060031, 60.2411758]  # Helsinki
