@@ -160,7 +160,7 @@ def create_tile_grid(bounding_box, zoom):
 
 # --------------------------
 
-def geometry_to_kml(shapes, multi_grid, output_file):
+def geometry_to_kml(shapes, multi_grid, output_file, line_width=.5):
     kml = simplekml.Kml()
     if shapes is not None:
         for shape in shapes:
@@ -170,13 +170,16 @@ def geometry_to_kml(shapes, multi_grid, output_file):
 
                 # Add ALL inner boundaries (holes)
                 poly.innerboundaryis = [list(interior.coords) for interior in shape.interiors]
-                
+                poly.style.linestyle.width = line_width
+
             elif isinstance(shape, MultiLineString):
                 for line in shape.geoms:
-                    kml.newlinestring(coords=list(line.coords))
+                    ls = kml.newlinestring(coords=list(line.coords))
+                    ls.style.linestyle.width = line_width
 
             elif isinstance(shape, LineString):  
-                kml.newlinestring(coords=list(shape.coords))
+                ls = kml.newlinestring(coords=list(shape.coords))
+                ls.style.linestyle.width = line_width
 
     # add the multigrid
     if multi_grid is not None:

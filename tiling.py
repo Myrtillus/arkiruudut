@@ -296,23 +296,36 @@ def main(kml_file, zoom_level, center_point, extending_km, output_file_name):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Process a KML file.")
     parser.add_argument(
-        "kml",
+        "--kml",
         nargs="?",
         default="squadrats.kml",
         help="Path to the KML file (default: squadrats.kml)"
     )
 
+    parser.add_argument(
+        "--suffix_name",
+        nargs="?",
+        default="",
+        help="person name added to filename and garmin name"
+    )
+
+
     args = parser.parse_args()
     kml_file = args.kml
+    suffix_name = args.suffix_name
 
     print(f"Processing KML file: {kml_file}")
 
 #    kml_file='squadrats.kml'
 
-    center_point = [23.7636959, 61.5]  # Tampere
-    #center_point = [24.9060031, 60.2411758]  # Helsinki
+    # center_point = [23.7636959, 61.5]  # Tampere
+    center_point = [-15.5944, 27.9603]   # Gran Canaria
+    # center_point = [23.75124, 61.31184]  #lempäälä
+    # center_point = [24.9060031, 60.2411758]  # Helsinki
+    #center_point = [2.9430, 39.6115]  # Mallorca
     
-    small_extending_km = 30  #12 kilometriä toimii brouterin kanssa
+    
+    small_extending_km = 40  #12 kilometriä toimii brouterin kanssa
     big_extending_km = 90
 
     small_output_file_name = 'small_output'
@@ -328,9 +341,12 @@ if __name__ == "__main__":
     # KML => OSM
     ##########################3
 
+
+    pdb.set_trace()
+
     # ajetaan gpsbabelilla KML tiedoston muunnos OSM fileeksi
     result = subprocess.run(["gpsbabel", 
-                            "-i"
+                            "-i",
                             "kml",
                             "-f",
                             "small_output.kml",
@@ -344,7 +360,7 @@ if __name__ == "__main__":
 
     # ajetaan gpsbabelilla KML tiedoston muunnos OSM fileeksi
     result = subprocess.run(["gpsbabel", 
-                            "-i"
+                            "-i",
                             "kml",
                             "-f",
                             "big_output.kml",
@@ -379,7 +395,7 @@ if __name__ == "__main__":
     result = subprocess.run(['mkgmap', 
                             '--read-config=config.txt',
                             f'--mapname={mapname_small}',
-                            f'--description=SMALL_tiles_{datestr}',
+                            f'--description={suffix_name}_SMALL_tiles_{datestr}',
                             'typ.txt',
                             'small_missing_tiles.osm'
                             ], capture_output=True, text=True)
@@ -389,7 +405,7 @@ if __name__ == "__main__":
 
     result = subprocess.run(['mv', 
                             'output/gmapsupp.img',
-                            f'output/tiles-small-{datestr}.img',
+                            f'output/{suffix_name}_tiles-small-{datestr}.img',
                             ], capture_output=True, text=True)
     print(result.stdout)
     print(result.stderr)
@@ -400,7 +416,7 @@ if __name__ == "__main__":
     result = subprocess.run(['mkgmap', 
                             '--read-config=config.txt',
                             f'--mapname={mapname_big}',
-                            f'--description=BIG_tiles_{datestr}',
+                            f'--description={suffix_name}_BIG_tiles_{datestr}',
                             'typ.txt',
                             'big_missing_tiles.osm'
                             ], capture_output=True, text=True)
@@ -409,7 +425,7 @@ if __name__ == "__main__":
 
     result = subprocess.run(['mv', 
                             'output/gmapsupp.img',
-                            f'output/tiles-big-{datestr}.img',
+                            f'output/{suffix_name}_tiles-big-{datestr}.img',
                             ], capture_output=True, text=True)
     print(result.stdout)
     print(result.stderr)
