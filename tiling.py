@@ -342,8 +342,6 @@ if __name__ == "__main__":
     ##########################3
 
 
-    pdb.set_trace()
-
     # ajetaan gpsbabelilla KML tiedoston muunnos OSM fileeksi
     result = subprocess.run(["gpsbabel", 
                             "-i",
