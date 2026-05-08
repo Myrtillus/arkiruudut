@@ -319,13 +319,22 @@ if __name__ == "__main__":
 #    kml_file='squadrats.kml'
 
     # center_point = [23.7636959, 61.5]  # Tampere
-    center_point = [-15.5944, 27.9603]   # Gran Canaria
+    center_point =[23.54808, 61.71656]   #kyrönlahti
+    # center_point = [24.072,61.4692] #kirkkojärvin kangasala
+    # center_point = [23.8410,61.4763] #nekala
+    # center_point = [23.91804,61.52993] # Niihaman lahti
+    # center_point = [23.95257, 61.45039]  # itäpuoli
+    # center_point =[23.59057,61.47413] #rajasalmen silta 
+    # center_point = [-15.5944, 27.9603]   # Gran Canaria
     # center_point = [23.75124, 61.31184]  #lempäälä
     # center_point = [24.9060031, 60.2411758]  # Helsinki
     #center_point = [2.9430, 39.6115]  # Mallorca
     
     
-    small_extending_km = 40  #12 kilometriä toimii brouterin kanssa
+    small_extending_km = 10  #10 kilometriä toimii brouterin kanssa
+    # small_extending_km = 20  
+    # small_extending_km = 20  
+    
     big_extending_km = 90
 
     small_output_file_name = 'small_output'
@@ -388,13 +397,17 @@ if __name__ == "__main__":
     mapname_big = str(random.randint(1000000, 9999999)+50000000)
 
 
-    ### SMALL tiles
+    ### SMALL tiles RED
 
     result = subprocess.run(['mkgmap', 
+                            # '--keep-going',
                             '--read-config=config.txt',
+                            # '--family-id=100',
                             f'--mapname={mapname_small}',
                             f'--description={suffix_name}_SMALL_tiles_{datestr}',
+                            '--draw-priority=34',
                             'typ.txt',
+                            # 'typ_red.txt',
                             'small_missing_tiles.osm'
                             ], capture_output=True, text=True)
     print(result.stdout)
@@ -409,13 +422,17 @@ if __name__ == "__main__":
     print(result.stderr)
 
 
-    ### BIG TILES
+    ### BIG TILES BLUE
 
     result = subprocess.run(['mkgmap', 
+                            # '--keep-going',
                             '--read-config=config.txt',
+                            # '--family-id=101',
                             f'--mapname={mapname_big}',
                             f'--description={suffix_name}_BIG_tiles_{datestr}',
+                            '--draw-priority=35',
                             'typ.txt',
+                            # 'typ_blue.txt',
                             'big_missing_tiles.osm'
                             ], capture_output=True, text=True)
     print(result.stdout)
