@@ -1,0 +1,8 @@
+family-id: 101
+product-id: 1
+latin1
+draw-priority: 99
+style-file: mkgmap_small.style
+transparent
+gmapsupp
+output-dir=output
