@@ -232,34 +232,61 @@ def round_bbox_to_osm_tiles(center_lon, center_lat, h_distance_km, v_distance_km
 
     return rounded_min_lon, rounded_min_lat, rounded_max_lon, rounded_max_lat
 
+#############################################
+# Generoidaan lennossa TYP file, johon koodaillaan viivan väri ja paksuus
+def create_typ_file(map_type, args):
+
+    COLOR_MAP = {
+        "red":    "#AA0000",
+        "blue":   "#0000FF",
+        "green":  "#00AA00",
+        "violet": "#8800AA",
+        "black":  "#000000",
+    }
+
+    # small tiles
+    if map_type == 'small_tiles':
+        line_width = args.lws
+        line_color=COLOR_MAP.get(args.lcs) 
+
+    # small grid
+    if map_type == 'small_grid':
+        line_width = args.lwsg
+        line_color=COLOR_MAP.get(args.lcsg) 
+
+    # big tiles
+    if map_type == 'big_tiles':
+        line_width = args.lwb
+        line_color=COLOR_MAP.get(args.lcb) 
+
+    # big grid
+    if map_type == 'big_grid':
+        line_width = args.lwbg
+        line_color=COLOR_MAP.get(args.lcbg) 
+
+    # write the typ_generate.txt file
+    with open('typ_generated.txt','w') as f:
+        f.write(
+            '\n'.join(
+                [
+                "[_line]",
+                "Type=0x01",
+                "UseOrientation=N",
+                f"LineWidth={line_width}",
+                'Xpm="0 0 1 0"',
+                f'"1 c {line_color}"',
+                "String=solid line",
+                "FontStyle=NoLabel",
+                "[end]"
+                ]
+            )
+        )
+
+
+
 # ---------------------------
-def main(kml_file, zoom_level, center_point, extending_km, output_file_name):
+def main(kml_file, zoom_level, center_point, extending_km, output_file_name, grid_only = False):
     # -----------------------------------
-
-    # lasketaan bounding boxit
-
-    bounding_box = round_bbox_to_osm_tiles(
-            center_point[0], center_point[1], 
-            extending_km, extending_km, 14)
-
-    
-
-    print("parsitaan kml alueisiin")
-    shapes = kml_to_shapes(kml_file, zoom_level)
-    
-    # Generate grid lines
-    print("gridviivaston luonti")
-    multi_grid = create_tile_grid(bounding_box, zoom=zoom_level)
-    
-    
-    # Optimized: Union all shapes first
-    print(f"Kasataan {len(shapes)} aluetta yhdeksi leikkausgeometriaksi")
-    merged_shapes = unary_union(shapes)  # Combine all shapes into one
-    
-    # 🔥 Perform difference in one step
-    print("Leikataan gridiviivat yhdellä operaatiolla")
-    multi_grid = multi_grid.difference(merged_shapes)
-    
 
     def polygon_to_multilinestring(polygon):
         # Extract exterior and interior boundaries
@@ -267,6 +294,39 @@ def main(kml_file, zoom_level, center_point, extending_km, output_file_name):
         # Convert to MultiLineString
         multilinestring = MultiLineString(lines)
         return multilinestring
+
+    # lasketaan bounding boxit
+
+    bounding_box = round_bbox_to_osm_tiles(
+            center_point[0], center_point[1], 
+            extending_km, extending_km, 14)
+
+
+        
+    # Generate grid lines
+    print("gridviivaston luonti")
+    multi_grid = create_tile_grid(bounding_box, zoom=zoom_level)
+    
+    
+    if not grid_only:
+
+        # halutaan laskea muutakin kuin pelkkä gridiviivasto
+
+        print("parsitaan kml alueisiin")
+        shapes = kml_to_shapes(kml_file, zoom_level)
+        
+        
+        # Optimized: Union all shapes first
+        print(f"Kasataan {len(shapes)} aluetta yhdeksi leikkausgeometriaksi")
+        merged_shapes = unary_union(shapes)  # Combine all shapes into one
+        
+        # 🔥 Perform difference in one step
+        print("Leikataan gridiviivat yhdellä operaatiolla")
+        multi_grid = multi_grid.difference(merged_shapes)
+        
+    else:
+        # korvataan kml:stä parsittu kuvia tyhjällä listalla
+        shapes=[] 
 
     print("leikataan alueet bounding boxilla")
     bounding_shape = box(*bounding_box)
@@ -285,11 +345,8 @@ def main(kml_file, zoom_level, center_point, extending_km, output_file_name):
     shapes = linelist
 
     print("kasataan KML file")
-    #geometry_to_kml(shapes, multi_grid, output_file="output.kml")
     geometry_to_kml(shapes, multi_grid, output_file=output_file_name)
 
-    #print("kasataan OSM file")
-    #shapes_to_osm(shapes, multi_grid, output_file_name)
 
 
 # ---------------------------
@@ -303,22 +360,119 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
-        "--suffix_name",
+        "--suffix",
         nargs="?",
         default="",
-        help="person name added to filename and garmin name"
+        help="Person name added to filename and garmin name"
     )
+
+    # small tile properties
+
+    parser.add_argument(
+        "--lcs",
+        nargs="?",
+        default="red",
+        help="Line color for small tiles (red, blue, green, violet, black)"
+    )
+
+    parser.add_argument(
+        "--lws",
+        nargs="?",
+        default=4,
+        help="Line width for small tiles"
+    )
+
+    parser.add_argument(
+        "--dps",
+        nargs="?",
+        default=99,
+        help="Draw priority for small tiles, highest number gets on the top of the maps"
+    )
+
+
+    # big tile properties
+
+    parser.add_argument(
+        "--lcb",
+        nargs="?",
+        default="blue",
+        help="Line color for big tiles (red, blue, green, violet, black)"
+    )
+
+    parser.add_argument(
+        "--lwb",
+        nargs="?",
+        default=6,
+        help="Line width for big tiles"
+    )
+
+    parser.add_argument(
+        "--dpb",
+        nargs="?",
+        default=100,
+        help="Draw priority for big tiles, highest number gets on the top of the maps"
+    )
+
+
+    # small grid map properties
+
+    parser.add_argument(
+        "--lcsg",
+        nargs="?",
+        default="black",
+        help="Line color for small grid lines (red, blue, green, violet, black)"
+    )
+
+    parser.add_argument(
+        "--lwsg",
+        nargs="?",
+        default=2,
+        help="Line width for small grid lines"
+    )
+
+    parser.add_argument(
+        "--dpsg",
+        nargs="?",
+        default=97,
+        help="Draw priority for small grid lines, highest number gets on the top of the maps"
+    )
+
+    # big grid map properties
+
+    parser.add_argument(
+        "--lcbg",
+        nargs="?",
+        default="green",
+        help="Line color for big grid lines (red, blue, green, violet, black)"
+    )
+
+    parser.add_argument(
+        "--lwbg",
+        nargs="?",
+        default=4,
+        help="Line width for big grid lines"
+    )
+
+    parser.add_argument(
+        "--dpbg",
+        nargs="?",
+        default=98,
+        help="Draw priority for big grid lines, highest number gets on the top of the maps"
+    )
+
+
 
 
     args = parser.parse_args()
     kml_file = args.kml
-    suffix_name = args.suffix_name
+    suffix = args.suffix
 
     print(f"Processing KML file: {kml_file}")
 
-#    kml_file='squadrats.kml'
 
     center_point = [23.7636959, 61.5]  # Tampere
+    # center_point = [23.87336, 61.47317] # Kaukajärvi
+    # center_point = [24.34371, 61.67986] # Orivesi
     # center_point =[23.54808, 61.71656]   #kyrönlahti
     # center_point = [24.072,61.4692] #kirkkojärvin kangasala
     # center_point = [23.8410,61.4763] #nekala
@@ -331,20 +485,38 @@ if __name__ == "__main__":
     #center_point = [2.9430, 39.6115]  # Mallorca
     
     
-    # small_extending_km = 10  #10 kilometriä toimii brouterin kanssa
+    # small_extending_km = 10 # 10 kilometriä toimii brouterin kanssa
     # small_extending_km = 20  
-    small_extending_km = 30  
-    
-    big_extending_km = 90
+    small_extending_km = 35
+    big_extending_km = 150
 
-    small_output_file_name = 'small_output'
-    big_output_file_name = 'big_output'
+
+
+    # temp file names
+
+    small_output_file_name = 'small_tiles'
+    big_output_file_name = 'big_tiles'
+    small_grid_file_name = 'small_grid'
+    big_grid_file_name = 'big_grid'
+
+    ################################################
+    # KML tiedostojen laskenta geometrioista
+    ################################################
 
     # pikkuruutujen laskenta
     main(kml_file, 17, center_point, small_extending_km, small_output_file_name)
     
     # isojen ruutujen laskenta
     main(kml_file, 14, center_point, big_extending_km, big_output_file_name)
+
+    # pienien ruutujen gridiviivaston laskenta
+    main(kml_file, 17, center_point, small_extending_km, small_grid_file_name, grid_only = True)
+
+    # ison ruutujen gridiviivaston laskenta
+    main(kml_file, 14, center_point, big_extending_km, big_grid_file_name, grid_only = True)
+
+
+
 
     ##########################3
     # KML => OSM
@@ -356,7 +528,7 @@ if __name__ == "__main__":
                             "-i",
                             "kml",
                             "-f",
-                            "small_output.kml",
+                            f"{small_output_file_name}.kml",
                             "-o",
                             "osm,tag=highway:primary",
                             "-F",
@@ -370,7 +542,7 @@ if __name__ == "__main__":
                             "-i",
                             "kml",
                             "-f",
-                            "big_output.kml",
+                            f"{big_output_file_name}.kml",
                             "-o",
                             "osm,tag=highway:primary",
                             "-F",
@@ -378,6 +550,41 @@ if __name__ == "__main__":
                             ], capture_output=True, text=True)
     print(result.stdout)
     print(result.stderr)
+
+
+    # ajetaan gpsbabelilla KML tiedoston muunnos OSM fileeksi
+    result = subprocess.run(["gpsbabel", 
+                            "-i",
+                            "kml",
+                            "-f",
+                            f"{small_grid_file_name}.kml",
+                            "-o",
+                            "osm,tag=highway:primary",
+                            "-F",
+                            "small_grid.osm"
+                            ], capture_output=True, text=True)
+    print(result.stdout)
+    print(result.stderr)
+
+    # ajetaan gpsbabelilla KML tiedoston muunnos OSM fileeksi
+    result = subprocess.run(["gpsbabel", 
+                            "-i",
+                            "kml",
+                            "-f",
+                            f"{big_grid_file_name}.kml",
+                            "-o",
+                            "osm,tag=highway:primary",
+                            "-F",
+                            "big_grid.osm"
+                            ], capture_output=True, text=True)
+    print(result.stdout)
+    print(result.stderr)
+
+
+
+
+
+
 
 
 
@@ -393,18 +600,30 @@ if __name__ == "__main__":
     )
     # luodaan garmin img fileet mkgmap:lla
     # arvotaan mapname jokaiselle kartalle
-    mapname_small = str(random.randint(1000000, 9999999)+40000000)
-    mapname_big = str(random.randint(1000000, 9999999)+50000000)
+    mapname_small_tiles = str(random.randint(1000000, 9999999)+40000000)
+    mapname_small_grid = str(random.randint(1000000, 9999999)+50000000)
+    mapname_big_tiles = str(random.randint(1000000, 9999999)+60000000)
+    mapname_big_grid = str(random.randint(1000000, 9999999)+70000000)
 
 
-    ### SMALL tiles RED
+    ### SMALL tiles
+    # ----------------------
 
-    result = subprocess.run(['mkgmap', 
-                            # '--keep-going',
-                            '--read-config=config_small.txt',
-                            f'--mapname={mapname_small}',
-                            f'--description={suffix_name}_SMALL_tiles_{datestr}',
-                            'typ_small.txt',
+
+    create_typ_file(map_type='small_tiles', args=args)
+
+    result = subprocess.run(['mkgmap',
+                            '--family-id=97',
+                            '--product-id=1',
+                            '--latin1',
+                            f'--draw-priority={args.dps}',
+                            '--style-file=mkgmap_tiles.style',
+                            '--transparent',
+                            '--gmapsupp',
+                            '--output-dir=output',
+                            f'--mapname={mapname_small_tiles}',
+                            f'--description={suffix}-small-tiles-{datestr}',
+                            'typ_generated.txt',
                             'small_missing_tiles.osm'
                             ], capture_output=True, text=True)
     print(result.stdout)
@@ -413,33 +632,116 @@ if __name__ == "__main__":
 
     result = subprocess.run(['mv', 
                             'output/gmapsupp.img',
-                            f'output/{suffix_name}_tiles-small-{datestr}.img',
+                            f'output/{suffix}-small-tiles-{datestr}.img',
                             ], capture_output=True, text=True)
     print(result.stdout)
     print(result.stderr)
 
 
-    ### BIG TILES BLUE
 
-    result = subprocess.run(['mkgmap', 
-                            '--read-config=config_big.txt',
-                            f'--mapname={mapname_big}',
-                            f'--description={suffix_name}_BIG_tiles_{datestr}',
-                            'typ_big.txt',
+
+    ### SMALL grid lines
+    # ----------------------
+
+    create_typ_file(map_type='small_grid', args=args)
+
+    result = subprocess.run(['mkgmap',
+                            '--family-id=98',
+                            '--product-id=1',
+                            '--latin1',
+                            f'--draw-priority={args.dpsg}',
+                            '--style-file=mkgmap_grid.style',
+                            '--transparent',
+                            '--gmapsupp',
+                            '--output-dir=output',
+                            f'--mapname={mapname_small_grid}',
+                            f'--description={suffix}-small-grid-{datestr}',
+                            'typ_generated.txt',
+                            'small_grid.osm'
+                            ], capture_output=True, text=True)
+    print(result.stdout)
+    print(result.stderr)
+
+
+    result = subprocess.run(['mv', 
+                            'output/gmapsupp.img',
+                            f'output/{suffix}-small-grid-{datestr}.img',
+                            ], capture_output=True, text=True)
+    print(result.stdout)
+    print(result.stderr)
+
+
+
+
+
+
+
+
+    ### BIG tiles
+    # ----------------------
+
+
+    create_typ_file(map_type='big_tiles', args=args)
+
+    result = subprocess.run(['mkgmap',
+                            '--family-id=99',
+                            '--product-id=1',
+                            '--latin1',
+                            f'--draw-priority={args.dpb}',
+                            '--style-file=mkgmap_tiles.style',
+                            '--transparent',
+                            '--gmapsupp',
+                            '--output-dir=output',
+                            f'--mapname={mapname_big_tiles}',
+                            f'--description={suffix}-big-tiles-{datestr}',
+                            'typ_generated.txt',
                             'big_missing_tiles.osm'
                             ], capture_output=True, text=True)
     print(result.stdout)
     print(result.stderr)
 
+
     result = subprocess.run(['mv', 
                             'output/gmapsupp.img',
-                            f'output/{suffix_name}_tiles-big-{datestr}.img',
+                            f'output/{suffix}-big-tiles-{datestr}.img',
                             ], capture_output=True, text=True)
     print(result.stdout)
     print(result.stderr)
 
-    #mkgmap -c config.txt --mapname=49847386 --description="SMALL_tiles" typ.txt small_missing_tiles.osm 
-    #mv output/gmapsupp.img output/gmapsupp-small.img
+
+
+
+    ### BIG grid lines
+    # ----------------------
+
+    create_typ_file(map_type='big_grid', args=args)
+
+    result = subprocess.run(['mkgmap',
+                            '--family-id=100',
+                            '--product-id=1',
+                            '--latin1',
+                            f'--draw-priority={args.dpbg}',
+                            '--style-file=mkgmap_grid.style',
+                            '--transparent',
+                            '--gmapsupp',
+                            '--output-dir=output',
+                            f'--mapname={mapname_big_grid}',
+                            f'--description={suffix}-big-grid-{datestr}',
+                            'typ_generated.txt',
+                            'big_grid.osm'
+                            ], capture_output=True, text=True)
+    print(result.stdout)
+    print(result.stderr)
+
+
+    result = subprocess.run(['mv', 
+                            'output/gmapsupp.img',
+                            f'output/{suffix}-big-grid-{datestr}.img',
+                            ], capture_output=True, text=True)
+    print(result.stdout)
+    print(result.stderr)
+
+
 
 
     """
