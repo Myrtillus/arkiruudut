@@ -460,7 +460,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--lcbg",
         nargs="?",
-        default="green",
+        default="violet",
         help="Line color for big grid lines (red, blue, green, violet, black)"
     )
 
@@ -490,7 +490,8 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # draw-priority on oltava välillä 0-31 tai muuten tekee ihan mitä sattuu
-    if max([args.dps, args.dpb, args.dpsg, args.dpgb]) > 31 or min([args.dps, args.dpb, args.dpsg, args.dpgb]) < 0:
+    dp_params = [int(x) for x in [args.dps, args.dpb, args.dpsg, args.dpbg]]
+    if max(dp_params) > 31 or min(dp_params) < 0:
         print("Parameter draw-priority must be between 0-31, check configuration")
         sys.exit()
 
@@ -520,8 +521,8 @@ if __name__ == "__main__":
     
     # small_extending_km = 10 # 10 kilometriä toimii brouterin kanssa
     # small_extending_km = 20  
-    small_extending_km = 15
-    big_extending_km = 100
+    small_extending_km = 30
+    big_extending_km = 150
 
 
 
