@@ -366,6 +366,7 @@ if __name__ == "__main__":
         help="Person name added to filename and garmin name"
     )
 
+    # ---------------------------
     # small tile properties
 
     parser.add_argument(
@@ -385,7 +386,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--dps",
         nargs="?",
-        default=99,
+        default=30,
         help="Draw priority for small tiles, highest number gets on the top of the maps"
     )
 
@@ -397,6 +398,7 @@ if __name__ == "__main__":
     )
 
 
+    # ---------------------------
     # big tile properties
 
     parser.add_argument(
@@ -416,7 +418,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--dpb",
         nargs="?",
-        default=100,
+        default=31,
         help="Draw priority for big tiles, highest number gets on the top of the maps"
     )
 
@@ -428,6 +430,7 @@ if __name__ == "__main__":
     )
 
 
+    # ---------------------------
     # small grid map properties
 
     parser.add_argument(
@@ -447,10 +450,11 @@ if __name__ == "__main__":
     parser.add_argument(
         "--dpsg",
         nargs="?",
-        default=97,
+        default=28,
         help="Draw priority for small grid lines, highest number gets on the top of the maps"
     )
 
+    # ---------------------------
     # big grid map properties
 
     parser.add_argument(
@@ -470,7 +474,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--dpbg",
         nargs="?",
-        default=98,
+        default=29,
         help="Draw priority for big grid lines, highest number gets on the top of the maps"
     )
 
@@ -484,7 +488,15 @@ if __name__ == "__main__":
 
 
     args = parser.parse_args()
-    
+
+    # draw-priority on oltava välillä 0-31 tai muuten tekee ihan mitä sattuu
+    if max([args.dps, args.dpb, args.dpsg, args.dpgb]) > 31 or min([args.dps, args.dpb, args.dpsg, args.dpgb]) < 0:
+        print("Parameter draw-priority must be between 0-31, check configuration")
+        sys.exit()
+
+
+
+
     kml_file = args.kml
     suffix = args.suffix
 
