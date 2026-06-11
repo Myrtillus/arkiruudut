@@ -443,16 +443,24 @@ if __name__ == "__main__":
     parser.add_argument(
         "--lwsg",
         nargs="?",
-        default=2,
+        default=1,
         help="Line width for small grid lines"
     )
 
     parser.add_argument(
         "--dpsg",
         nargs="?",
-        default=28,
+        default=24,
         help="Draw priority for small grid lines, highest number gets on the top of the maps"
     )
+
+    parser.add_argument(
+        "--fisg",
+        nargs="?",
+        default=106,
+        help="Family-ID for small gridlines"
+    )
+
 
     # ---------------------------
     # big grid map properties
@@ -460,22 +468,29 @@ if __name__ == "__main__":
     parser.add_argument(
         "--lcbg",
         nargs="?",
-        default="violet",
+        default="black",
         help="Line color for big grid lines (red, blue, green, violet, black)"
     )
 
     parser.add_argument(
         "--lwbg",
         nargs="?",
-        default=4,
+        default=1,
         help="Line width for big grid lines"
     )
 
     parser.add_argument(
         "--dpbg",
         nargs="?",
-        default=29,
+        default=25,
         help="Draw priority for big grid lines, highest number gets on the top of the maps"
+    )
+
+    parser.add_argument(
+        "--fibg",
+        nargs="?",
+        default=105,
+        help="Family-ID for big gridlines"
     )
 
 
@@ -505,6 +520,7 @@ if __name__ == "__main__":
 
 
     center_point = [23.7636959, 61.5]  # Tampere
+    # center_point = [23.667, 61.53502] # Lentävänniemie
     # center_point = [23.87336, 61.47317] # Kaukajärvi
     # center_point = [24.34371, 61.67986] # Orivesi
     # center_point =[23.54808, 61.71656]   #kyrönlahti
@@ -721,7 +737,7 @@ if __name__ == "__main__":
         create_typ_file(map_type='small_grid', args=args)
 
         result = subprocess.run(['mkgmap',
-                                '--family-id=98',
+                                f'--family-id={args.fisg}',
                                 '--product-id=1',
                                 '--latin1',
                                 f'--draw-priority={args.dpsg}',
@@ -753,7 +769,7 @@ if __name__ == "__main__":
         create_typ_file(map_type='big_grid', args=args)
 
         result = subprocess.run(['mkgmap',
-                                '--family-id=100',
+                                f'--family-id={args.fibg}',
                                 '--product-id=1',
                                 '--latin1',
                                 f'--draw-priority={args.dpbg}',
